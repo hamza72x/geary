@@ -20,9 +20,11 @@ public class Components.ConversationListHeaderBar : Hdy.HeaderBar {
     public string folder { get; set; }
     public bool search_open { get; set; default = false; }
     public bool selection_open { get; set; default = false; }
+    public bool unread_only_filter { get; set; default = false; }
 
     [GtkChild] private unowned Gtk.ToggleButton search_button;
     [GtkChild] private unowned Gtk.ToggleButton selection_button;
+    [GtkChild] private unowned Gtk.ToggleButton unread_only_button;
     [GtkChild] public unowned Gtk.Button back_button;
 
 
@@ -38,6 +40,11 @@ public class Components.ConversationListHeaderBar : Hdy.HeaderBar {
         this.bind_property(
             "selection-open",
             this.selection_button, "active",
+            SYNC_CREATE | BIDIRECTIONAL
+        );
+        this.bind_property(
+            "unread-only-filter",
+            this.unread_only_button, "active",
             SYNC_CREATE | BIDIRECTIONAL
         );
     }

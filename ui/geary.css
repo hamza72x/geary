@@ -95,6 +95,14 @@ row.conversation-list.unread .participants {
   font-weight: bold;
 }
 
+/* Large unread dot indicator */
+row.conversation-list .unread-dot {
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 50%;
+  background-color: #3584e4;
+}
+
 row.conversation-list .count-badge {
   background: #888888;
   color: white;

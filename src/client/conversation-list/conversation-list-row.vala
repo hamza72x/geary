@@ -26,6 +26,7 @@ internal class ConversationList.Row : Gtk.ListBoxRow {
     [GtkChild] unowned Gtk.Label count_badge;
 
     [GtkChild] unowned Gtk.Image flagged_icon;
+    [GtkChild] unowned Gtk.Box unread_dot_container;
 
     [GtkChild] unowned Gtk.CheckButton selected_button;
 
@@ -135,8 +136,10 @@ internal class ConversationList.Row : Gtk.ListBoxRow {
     private void update_flags(Geary.Email? email) {
         if (conversation.is_unread()) {
             get_style_context().add_class("unread");
+            this.unread_dot_container.show();
         } else {
             get_style_context().remove_class("unread");
+            this.unread_dot_container.hide();
         }
 
         if (conversation.is_flagged()) {

@@ -45,6 +45,24 @@
       </object>
     </child>
     <child>
+      <object class="GtkToggleButton" id="unread_only_button">
+        <property name="visible">True</property>
+        <property name="focus_on_click">False</property>
+        <property name="receives_default">False</property>
+        <property name="tooltip_text" translatable="yes">Show only unread messages</property>
+        <property name="always_show_image">True</property>
+        <child>
+          <object class="GtkImage" id="unread_only_image">
+            <property name="visible">True</property>
+            <property name="icon_name">mail-unread-symbolic</property>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="pack_type">end</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkToggleButton" id="search_button">
         <property name="visible">True</property>
         <property name="focus_on_click">False</property>

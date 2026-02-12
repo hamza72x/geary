@@ -10,6 +10,8 @@ public class FolderList.InboxesBranch : Sidebar.Branch {
     public Gee.HashMap<Geary.Account, InboxFolderEntry> folder_entries {
         get; private set; default = new Gee.HashMap<Geary.Account, InboxFolderEntry>(); }
 
+    public AllInboxesEntry? all_inboxes_entry { get; private set; default = null; }
+
     public InboxesBranch() {
         base(
             new Sidebar.Header(_("Inboxes")),
@@ -19,8 +21,14 @@ public class FolderList.InboxesBranch : Sidebar.Branch {
     }
 
     private static int inbox_comparator(Sidebar.Entry a, Sidebar.Entry b) {
-        assert(a is InboxFolderEntry);
-        assert(b is InboxFolderEntry);
+        bool a_all = a is AllInboxesEntry;
+        bool b_all = b is AllInboxesEntry;
+        if (a_all && !b_all)
+            return -1;
+        if (!a_all && b_all)
+            return 1;
+        if (a_all && b_all)
+            return 0;
 
         InboxFolderEntry entry_a = (InboxFolderEntry) a;
         InboxFolderEntry entry_b = (InboxFolderEntry) b;
@@ -32,7 +40,45 @@ public class FolderList.InboxesBranch : Sidebar.Branch {
         return folder_entries.get(account);
     }
 
+    /** Returns the folder for the first inbox by account ordinal, or null if none. */
+    public Geary.Folder? get_first_inbox_folder() {
+        if (folder_entries.is_empty)
+            return null;
+        InboxFolderEntry? first = null;
+        foreach (var entry in folder_entries.values) {
+            if (first == null ||
+                Geary.AccountInformation.compare_ascending(
+                    entry.get_account_information(),
+                    first.get_account_information()) < 0) {
+                first = entry;
+            }
+        }
+        return first != null ? first.folder : null;
+    }
+
+    /** Returns all inbox folders sorted by account ordinal. */
+    public Gee.List<Geary.Folder> get_all_inbox_folders() {
+        var list = new Gee.ArrayList<Geary.Folder>();
+        var entries_list = new Gee.ArrayList<InboxFolderEntry>();
+        entries_list.add_all(folder_entries.values);
+        entries_list.sort((a, b) =>
+            Geary.AccountInformation.compare_ascending(
+                a.get_account_information(),
+                b.get_account_information()));
+        foreach (var entry in entries_list) {
+            list.add(entry.folder);
+        }
+        return list;
+    }
+
     public void add_inbox(Application.FolderContext inbox) {
+        if (folder_entries.is_empty) {
+            all_inboxes_entry = new AllInboxesEntry(this);
+            graft(get_root(), all_inboxes_entry);
+        }
+        inbox.folder.properties.notify[Geary.FolderProperties.PROP_NAME_EMAIL_UNREAD]
+            .connect(on_inbox_unread_changed);
+
         InboxFolderEntry folder_entry = new InboxFolderEntry(inbox);
         graft(get_root(), folder_entry);
 
@@ -48,8 +94,21 @@ public class FolderList.InboxesBranch : Sidebar.Branch {
         }
 
         account.information.notify["ordinal"].disconnect(on_ordinal_changed);
+        var folder_entry = (InboxFolderEntry) entry;
+        folder_entry.folder.properties.notify[Geary.FolderProperties.PROP_NAME_EMAIL_UNREAD]
+            .disconnect(on_inbox_unread_changed);
         prune(entry);
         folder_entries.unset(account);
+
+        if (folder_entries.is_empty && all_inboxes_entry != null) {
+            prune(all_inboxes_entry);
+            all_inboxes_entry = null;
+        }
+    }
+
+    private void on_inbox_unread_changed() {
+        if (all_inboxes_entry != null)
+            all_inboxes_entry.notify_count_changed();
     }
 
     private void on_ordinal_changed() {
