@@ -1681,7 +1681,10 @@ public class Application.MainWindow :
         this.conversation_headerbar.full_actions.selected_conversations = to_select.size;
         this.conversation_headerbar.compact_actions.selected_conversations = to_select.size;
 
-        if (this.selected_folder != null && !this.has_composer) {
+        // When viewing a single folder, selected_folder is set; when viewing
+        // "All Inboxes", it is null but is_unified_inbox is true. In both cases
+        // we should load the selected conversation in the viewer.
+        if ((this.selected_folder != null || this.is_unified_inbox) && !this.has_composer) {
             switch(to_select.size) {
             case 0:
                 update_conversation_actions(NONE);
@@ -1698,6 +1701,11 @@ public class Application.MainWindow :
                 // hasn't signalled its removal yet. In this case,
                 // just don't load it since it will soon disappear.
                 AccountContext? context = get_selected_account_context();
+                if (context == null && this.is_unified_inbox && convo != null) {
+                    context = this.controller.get_context_for_account(
+                        convo.base_folder.account.information
+                    );
+                }
                 if (context != null && convo.get_count() > 0) {
                     try {
                         yield this.conversation_viewer.load_conversation(
@@ -1880,6 +1888,15 @@ public class Application.MainWindow :
         // Only update the UI if we don't currently have a composer,
         // so we don't clobber it
         if (!this.has_composer) {
+            // When viewing "All Inboxes", this.conversations is null; use
+            // unified inbox state and selection instead.
+            if (this.is_unified_inbox) {
+                if (this.conversation_list_view.selected.size == 0) {
+                    this.conversation_viewer.show_none_selected();
+                    update_conversation_actions(NONE);
+                }
+                return;
+            }
             if (this.conversations.size == 0) {
                 // Let the user know if there's no available conversations
                 if (this.selected_folder.used_as == SEARCH) {
@@ -2913,6 +2930,9 @@ public class Application.MainWindow :
                                Geary.NamedFlag? to_add,
                                Geary.NamedFlag? to_remove) {
         Geary.Folder? location = this.selected_folder;
+        if (location == null && this.is_unified_inbox && view != null) {
+            location = view.conversation.base_folder;
+        }
         if (location != null) {
             Geary.EmailFlags add_flags = null;
             if (to_add != null) {

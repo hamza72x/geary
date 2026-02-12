@@ -23,8 +23,9 @@
               <object class="GtkBox" id="unread_dot_container">
                 <property name="visible">False</property>
                 <property name="valign">start</property>
+                <property name="margin-left">4</property>
                 <property name="margin-top">6</property>
-                <property name="margin-end">8</property>
+                <property name="margin-end">0</property>
                 <style>
                   <class name="unread-dot"/>
                 </style>
