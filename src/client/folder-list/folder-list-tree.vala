@@ -17,8 +17,6 @@ public class FolderList.Tree : Sidebar.Tree, Geary.BaseInterface {
 
     public signal void folder_selected(Geary.Folder? folder);
     public signal void folder_activated(Geary.Folder? folder);
-    /** Emitted when "All Inboxes" is selected; provides all inbox folders to show merged. */
-    public signal void all_inboxes_selected(Gee.Collection<Geary.Folder> inbox_folders);
     public signal void copy_conversation(Geary.Folder folder);
     public signal void move_conversation(Geary.Folder folder);
 
@@ -90,15 +88,6 @@ public class FolderList.Tree : Sidebar.Tree, Geary.BaseInterface {
     }
 
     private void on_entry_selected(Sidebar.SelectableEntry selectable) {
-        AllInboxesEntry? all_inboxes = selectable as AllInboxesEntry;
-        if (all_inboxes != null) {
-            var folders = inboxes_branch.get_all_inbox_folders();
-            if (!folders.is_empty) {
-                this.selected = null; // No single folder for "All Inboxes"
-                all_inboxes_selected(folders);
-            }
-            return;
-        }
         AbstractFolderEntry? entry = selectable as AbstractFolderEntry;
         if (entry != null) {
             this.selected = entry.folder;
@@ -107,13 +96,6 @@ public class FolderList.Tree : Sidebar.Tree, Geary.BaseInterface {
     }
 
     private void on_entry_activated(Sidebar.SelectableEntry selectable) {
-        AllInboxesEntry? all_inboxes = selectable as AllInboxesEntry;
-        if (all_inboxes != null) {
-            var folders = inboxes_branch.get_all_inbox_folders();
-            if (!folders.is_empty)
-                all_inboxes_selected(folders);
-            return;
-        }
         AbstractFolderEntry? entry = selectable as AbstractFolderEntry;
         if (entry != null) {
             folder_activated(entry.folder);

@@ -88,7 +88,6 @@ client_vala_sources = files(
   'composer/contact-entry-completion.vala',
   'composer/spell-check-popover.vala',
 
-  'conversation-list/conversation-list-merged-model.vala',
   'conversation-list/conversation-list-model.vala',
   'conversation-list/conversation-list-participant.vala',
   'conversation-list/conversation-list-row.vala',
@@ -109,7 +108,6 @@ client_vala_sources = files(
 
   'folder-list/folder-list-abstract-folder-entry.vala',
   'folder-list/folder-list-account-branch.vala',
-  'folder-list/folder-list-all-inboxes-entry.vala',
   'folder-list/folder-list-folder-entry.vala',
   'folder-list/folder-list-tree.vala',
   'folder-list/folder-list-inboxes-branch.vala',

@@ -128,68 +128,6 @@ public class ConversationList.View : Gtk.ScrolledWindow, Geary.BaseInterface {
      */
     private Model? model;
 
-    /**
-     * Set the conversation monitor which the listview is displaying
-     */
-    public void set_monitor(Geary.App.ConversationMonitor? monitor) {
-        clear_merged_model();
-        if (this.model != null) {
-            this.model.conversations_loaded.disconnect(on_conversations_loaded);
-            this.model.conversations_removed.disconnect(on_conversations_removed);
-            this.model.conversation_updated.disconnect(on_conversation_updated);
-        }
-        if (monitor == null) {
-            this.model = null;
-            this.list.bind_model(null, row_factory);
-        } else {
-            this.model = new Model(monitor);
-            this.list.bind_model(this.model, row_factory);
-            this.model.conversations_loaded.connect(on_conversations_loaded);
-            this.model.conversations_removed.connect(on_conversations_removed);
-            this.model.conversation_updated.connect(on_conversation_updated);
-        }
-        apply_unread_only_filter();
-    }
-
-    /** Set a merged model (e.g. for "All Inboxes") and optional monitors for load_more. */
-    public void set_merged_model(ConversationList.MergedModel merged_model,
-                                Gee.Collection<Geary.App.ConversationMonitor>? monitors = null) {
-        if (this.merged_monitors != null) {
-            clear_merged_model();
-        }
-        if (this.model != null) {
-            this.model.conversations_loaded.disconnect(on_conversations_loaded);
-            this.model.conversations_removed.disconnect(on_conversations_removed);
-            this.model.conversation_updated.disconnect(on_conversation_updated);
-            this.model = null;
-        }
-        this.merged_model = merged_model;
-        if (monitors != null && !monitors.is_empty) {
-            this.merged_monitors = new Gee.ArrayList<Geary.App.ConversationMonitor>();
-            this.merged_monitors.add_all(monitors);
-        } else {
-            this.merged_monitors = null;
-        }
-        this.list.bind_model(merged_model, row_factory);
-        merged_model.conversations_loaded.connect(on_conversations_loaded);
-        merged_model.conversations_removed.connect(on_conversations_removed);
-        merged_model.conversation_updated.connect(on_conversation_updated);
-        apply_unread_only_filter();
-    }
-
-    private ConversationList.MergedModel? merged_model = null;
-    private Gee.ArrayList<Geary.App.ConversationMonitor>? merged_monitors = null;
-
-    private void clear_merged_model() {
-        if (merged_model != null) {
-            merged_model.conversations_loaded.disconnect(on_conversations_loaded);
-            merged_model.conversations_removed.disconnect(on_conversations_removed);
-            merged_model.conversation_updated.disconnect(on_conversation_updated);
-            merged_model = null;
-        }
-        merged_monitors = null;
-    }
-
     /** When true, only unread conversations are shown. */
     public bool unread_only_filter {
         get { return _unread_only_filter; }
@@ -223,12 +161,32 @@ public class ConversationList.View : Gtk.ScrolledWindow, Geary.BaseInterface {
     }
 
     /**
+     * Set the conversation monitor which the listview is displaying
+     */
+    public void set_monitor(Geary.App.ConversationMonitor? monitor) {
+        if (this.model != null) {
+            this.model.conversations_loaded.disconnect(on_conversations_loaded);
+            this.model.conversations_removed.disconnect(on_conversations_removed);
+            this.model.conversation_updated.disconnect(on_conversation_updated);
+        }
+        if (monitor == null) {
+            this.model = null;
+            this.list.bind_model(null, row_factory);
+        } else {
+            this.model = new Model(monitor);
+            this.list.bind_model(this.model, row_factory);
+            this.model.conversations_loaded.connect(on_conversations_loaded);
+            this.model.conversations_removed.connect(on_conversations_removed);
+            this.model.conversation_updated.connect(on_conversation_updated);
+        }
+        apply_unread_only_filter();
+    }
+
+    /**
      * Attempt to load more conversations from the current monitor
      */
     public void load_more(int request) {
-        if (merged_model != null) {
-            merged_model.load_more(request);
-        } else if (model != null) {
+        if (model != null) {
             model.load_more(request);
         }
     }
@@ -564,19 +522,16 @@ public class ConversationList.View : Gtk.ScrolledWindow, Geary.BaseInterface {
                 return Source.REMOVE;
             }
 
-            ListModel? m = (merged_model != null) ? (ListModel) merged_model : (ListModel?) model;
-            if (m == null)
-                return Source.REMOVE;
             uint start_index = ((uint) first.get_index());
             uint end_index = uint.min(
                 // Assume that all messages are the same height
                 start_index + (uint) (this.vadjustment.page_size / first.get_allocated_height()),
-                m.get_n_items()
+                this.model.get_n_items()
             );
 
             for (uint i = start_index; i < end_index; i++) {
                 visible_conversations.add(
-                    m.get_item(i) as Geary.App.Conversation
+                    this.model.get_item(i) as Geary.App.Conversation
                 );
             }
 
