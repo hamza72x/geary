@@ -13,7 +13,7 @@ sudo pacman -S --needed base-devel meson ninja vala gtk3 webkit2gtk-4.1 \
     sqlite glib2 gmime3 gnome-online-accounts enchant gspell gsound \
     libgee folks libpeas libsecret json-glib libhandy iso-codes \
     libstemmer libunwind libxml2 libytnef desktop-file-utils itstool \
-    gettext libicu gcr-4
+    gettext gcr-4
 ```
 
 Optional dependencies for additional features:
